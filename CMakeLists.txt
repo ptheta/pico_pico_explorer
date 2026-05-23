@@ -28,6 +28,7 @@ include(${PIMORONI_PICO_PATH}/libraries/pico_explorer/pico_explorer.cmake)
 
 add_executable(hello_world
     hello_world.cpp
+    display.cpp
 )
 
 target_link_libraries(hello_world
