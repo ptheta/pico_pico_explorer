@@ -23,8 +23,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 pico_sdk_init()
 
-include(${PIMORONI_PICO_PATH}/libraries/pico_explorer/pico_explorer)
-include(${PIMORONI_PICO_PATH}/libraries/pico_graphics/pico_graphics)
+include(${PIMORONI_PICO_PATH}/common/pimoroni_bus.cmake)
+include(${PIMORONI_PICO_PATH}/libraries/pico_explorer/pico_explorer.cmake)
 
 add_executable(hello_world
     hello_world.cpp
@@ -33,10 +33,6 @@ add_executable(hello_world
 target_link_libraries(hello_world
     pico_stdlib
     pico_explorer
-    pico_graphics
-    hardware_spi
-    hardware_dma
-    hardware_pwm
 )
 
 # USB serial output; no UART
