@@ -7,6 +7,8 @@
 #include "pong_game.hpp"
 #include "buzzer.hpp"
 
+static constexpr uint32_t TICK_MS = 50;
+
 enum class AppState { MENU, DEMO, PONG };
 
 int main() {
@@ -24,6 +26,8 @@ int main() {
     display.show(menu);
 
     while (true) {
+        absolute_time_t tick_end = make_timeout_time_ms(TICK_MS);
+
         buttons.update();
         const Buttons& btns = buttons.get();
 
@@ -57,6 +61,6 @@ int main() {
             display.show(menu);
         }
 
-        sleep_ms(50);
+        sleep_until(tick_end);
     }
 }
