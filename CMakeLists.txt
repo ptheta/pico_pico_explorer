@@ -35,6 +35,7 @@ add_executable(hello_world
     circle_screen.cpp
     triangle_screen.cpp
     menu_screen.cpp
+    pong_game.cpp
     scene.cpp
 )
 
