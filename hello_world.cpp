@@ -1,13 +1,15 @@
 #include "pico/stdlib.h"
 #include "display.hpp"
+#include "text_screen.hpp"
 
 int main() {
     stdio_init_all();
 
     Display display;
+    TextScreen screen("Hello, World!");
 
     while (true) {
-        display.show("Hello, World!");
+        display.show(screen);
         sleep_ms(100);
     }
 }

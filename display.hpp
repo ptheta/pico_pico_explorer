@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include <string_view>
+#include "screen.hpp"
 
 class Display {
 public:
@@ -13,7 +13,7 @@ public:
     Display(Display&&)                 = delete;
     Display& operator=(Display&&)      = delete;
 
-    void show(std::string_view text);
+    void show(const Screen& screen);
 
 private:
     struct Impl;
