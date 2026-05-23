@@ -12,15 +12,33 @@ The goal isn't production code — it's a space to explore embedded C++ ideas, t
 
 ## What it does
 
-Boots to a menu. From the menu you can launch a bouncing demo where a rectangle, circle, and text all bounce around the screen, collide with each other, and react. While in the demo:
+Boots to a menu with two options.
+
+### Bouncing Demo
+
+A rectangle, circle, and text bounce around the screen, collide with each other, and react.
 
 | Button | Action |
 |--------|--------|
-| A | Speed up |
-| B | Slow down |
+| A | Speed up all objects |
+| B | Slow down all objects |
 | X | Add a triangle (random colour) |
 | Y (short press) | Remove a random triangle |
-| Y (hold 2s) | Back to menu |
+| Y (hold 5s) | Back to menu (resets demo) |
+
+### Pong
+
+Two-player pong with a bouncing ball and sound effects.
+
+| Button | Action |
+|--------|--------|
+| A (held) | Left paddle up |
+| B (held) | Left paddle down |
+| X (held) | Right paddle up |
+| Y (held) | Right paddle down |
+| Y (hold 5s) | Back to menu |
+
+**Sound:** bounce sounds play via the onboard piezo. Bridge **GP0** to the **AUDIO** header pin on the Pico Explorer to enable it.
 
 ## Architecture
 
@@ -87,6 +105,7 @@ classDiagram
     class GraphicScreen
     class CircleScreen
     class TriangleScreen
+    class PongGame
 
     Screen <|-- Scene
     Screen <|-- TextScreen
@@ -94,6 +113,7 @@ classDiagram
     Screen <|-- CircleScreen
     Screen <|-- TriangleScreen
     Screen <|-- MenuScreen
+    Screen <|-- PongGame
 
     Renderer <|-- PicoRenderer
 
@@ -139,8 +159,10 @@ scene.cpp/hpp          — Composite scene with collision detection
 text_screen.cpp/hpp    — Bouncing text
 graphic_screen.cpp/hpp — Bouncing rectangle
 circle_screen.cpp/hpp  — Bouncing circle
-triangle_screen.cpp/hpp— Bouncing triangle (dynamically added/removed)
+triangle_screen.cpp/hpp — Bouncing triangle (dynamically added/removed)
 menu_screen.cpp/hpp    — Simple menu with keyboard navigation
+pong_game.cpp/hpp      — Self-contained Pong game
+buzzer.cpp/hpp         — Non-blocking PWM tone generator (GP0)
 screen_dims.hpp        — Shared display dimensions
 hello_world.cpp        — main(): app state machine and button handling
 ```
