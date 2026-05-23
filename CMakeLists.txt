@@ -18,6 +18,7 @@ endif()
 include(${PIMORONI_PICO_PATH}/pimoroni_pico_import.cmake)
 
 project(hello_world C CXX ASM)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
