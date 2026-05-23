@@ -11,6 +11,8 @@ The goal isn't production code — it's a space to explore embedded C++ ideas, t
 - Two extra buttons wired on the breadboard: **GP1** (back) and **GP2** (select), active-high with pull-downs
 - Raspberry Pi Debug Probe (for flashing via SWD — no BOOTSEL juggling)
 
+![Dev setup showing the Pico Explorer with Pong running, Debug Probe, and breadboard buttons](docs/hardware.jpg)
+
 ## What it does
 
 Boots to a menu. Navigate with A/X (up) and B/Y (down), select with GP2, or go back to the menu from any app with GP1.
