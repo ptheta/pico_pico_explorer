@@ -9,6 +9,7 @@
 #include "triangle_screen.hpp"
 #include "menu_screen.hpp"
 #include "pong_game.hpp"
+#include "buzzer.hpp"
 #include <memory>
 #include <vector>
 #include <cstdlib>
@@ -38,6 +39,7 @@ int main() {
     stdio_init_all();
     srand(time_us_32());
     init_buttons();
+    Buzzer::init(0);   // GP0 → bridge to AUDIO header pin for piezo
 
     Display display;
 
@@ -112,6 +114,7 @@ int main() {
                         demo.reset();
                     } else if (state == AppState::PONG) {
                         pong.reset();
+                        Buzzer::stop();
                     }
                     state = AppState::MENU;
                     display.show(menu);

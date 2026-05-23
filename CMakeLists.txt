@@ -36,6 +36,7 @@ add_executable(hello_world
     triangle_screen.cpp
     menu_screen.cpp
     pong_game.cpp
+    buzzer.cpp
     scene.cpp
 )
 
@@ -43,6 +44,7 @@ target_link_libraries(hello_world
     pico_stdlib
     pico_explorer
     pico_multicore
+    hardware_pwm
 )
 
 # USB serial output; no UART

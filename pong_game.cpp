@@ -1,4 +1,5 @@
 #include "pong_game.hpp"
+#include "buzzer.hpp"
 #include "screen_dims.hpp"
 #include <algorithm>
 #include <cstdlib>
@@ -24,12 +25,14 @@ void PongGame::reset_ball() {
 }
 
 void PongGame::animate() {
+    Buzzer::update();
+
     ball_x_ += ball_dx_;
     ball_y_ += ball_dy_;
 
     // Top / bottom walls
-    if (ball_y_ - BALL_R <= 0)        { ball_y_ = BALL_R;            ball_dy_ = -ball_dy_; }
-    if (ball_y_ + BALL_R >= SCREEN_H) { ball_y_ = SCREEN_H - BALL_R; ball_dy_ = -ball_dy_; }
+    if (ball_y_ - BALL_R <= 0)        { ball_y_ = BALL_R;            ball_dy_ = -ball_dy_; Buzzer::play(440, 50); }
+    if (ball_y_ + BALL_R >= SCREEN_H) { ball_y_ = SCREEN_H - BALL_R; ball_dy_ = -ball_dy_; Buzzer::play(440, 50); }
 
     // Left paddle collision
     if (ball_dx_ < 0 &&
@@ -38,6 +41,7 @@ void PongGame::animate() {
         ball_y_ - BALL_R <= left_y_ + PADDLE_H) {
         ball_x_  = LEFT_X + PADDLE_W + BALL_R;
         ball_dx_ = -ball_dx_;
+        Buzzer::play(880, 60);
     }
 
     // Right paddle collision
@@ -47,11 +51,12 @@ void PongGame::animate() {
         ball_y_ - BALL_R <= right_y_ + PADDLE_H) {
         ball_x_  = RIGHT_X - BALL_R;
         ball_dx_ = -ball_dx_;
+        Buzzer::play(880, 60);
     }
 
     // Scoring
-    if (ball_x_ - BALL_R <= 0)        { ++score_right_; reset_ball(); }
-    if (ball_x_ + BALL_R >= SCREEN_W) { ++score_left_;  reset_ball(); }
+    if (ball_x_ - BALL_R <= 0)        { ++score_right_; reset_ball(); Buzzer::play(220, 300); }
+    if (ball_x_ + BALL_R >= SCREEN_W) { ++score_left_;  reset_ball(); Buzzer::play(220, 300); }
 }
 
 void PongGame::render(Renderer& r) const {
