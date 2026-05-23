@@ -38,6 +38,7 @@ add_executable(hello_world
     lib/triangle_screen.cpp
     lib/menu_screen.cpp
     lib/scene.cpp
+    apps/demo.cpp
     apps/pong_game.cpp
 )
 
