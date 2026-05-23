@@ -12,13 +12,13 @@ mkdir -p "$PICO_DIR"
 
 # --- toolchain & cmake ---
 echo "==> Installing ARM toolchain and build tools"
-sudo apt-get update -q
-sudo apt-get install -y -q \
+sudo dnf install -y \
     cmake \
-    gcc-arm-none-eabi \
-    libnewlib-arm-none-eabi \
-    libstdc++-arm-none-eabi-newlib \
-    build-essential \
+    make \
+    arm-none-eabi-gcc-cs \
+    arm-none-eabi-gcc-cs-c++ \
+    arm-none-eabi-binutils-cs \
+    arm-none-eabi-newlib \
     git \
     python3
 
