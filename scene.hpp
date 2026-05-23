@@ -1,0 +1,27 @@
+#pragma once
+
+#include <cstdint>
+#include <vector>
+#include "screen.hpp"
+#include "renderer.hpp"
+
+class Scene : public Screen {
+public:
+    explicit Scene(Colour bg = {0, 0, 0}, uint32_t display_hz = 30);
+
+    void add(Screen& screen);
+
+    void     render(Renderer& r) const override;
+    void     animate()                   override;
+    uint32_t animation_hz()        const override { return display_hz_; }
+
+private:
+    struct Entry {
+        Screen*  screen;
+        uint32_t frame_counter = 0;
+    };
+
+    Colour           bg_;
+    uint32_t         display_hz_;
+    std::vector<Entry> entries_;
+};

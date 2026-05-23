@@ -31,6 +31,8 @@ add_executable(hello_world
     hello_world.cpp
     display.cpp
     text_screen.cpp
+    graphic_screen.cpp
+    scene.cpp
 )
 
 target_link_libraries(hello_world

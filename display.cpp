@@ -26,6 +26,10 @@ struct PicoRenderer : Renderer {
         graphics.clear();
     }
 
+    void fill_rect(int x, int y, int w, int h) override {
+        graphics.rectangle(pimoroni::Rect(x, y, w, h));
+    }
+
     void text(std::string_view t, int x, int y, int wrap, float scale) override {
         graphics.text(t, Point(x, y), wrap, scale);
     }
