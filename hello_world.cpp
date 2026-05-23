@@ -21,7 +21,7 @@ static constexpr uint BTN_X = 14;
 static constexpr uint BTN_Y = 15;
 
 // Hold Y for this many 50 ms ticks to exit back to menu
-static constexpr int Y_LONG_TICKS = 40; // 40 × 50 ms = 2 s
+static constexpr int Y_LONG_TICKS = 100; // 100 × 50 ms = 5 s
 
 static void init_buttons() {
     for (uint pin : {BTN_A, BTN_B, BTN_X, BTN_Y}) {

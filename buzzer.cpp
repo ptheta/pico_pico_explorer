@@ -13,6 +13,7 @@ static constexpr uint     CLK_DIV      = 16;
 
 void Buzzer::init(uint gpio) {
     gpio_set_function(gpio, GPIO_FUNC_PWM);
+    gpio_set_drive_strength(gpio, GPIO_DRIVE_STRENGTH_12MA);
     g_slice   = pwm_gpio_to_slice_num(gpio);
     g_channel = pwm_gpio_to_channel(gpio);
     pwm_set_clkdiv(g_slice, static_cast<float>(CLK_DIV));
