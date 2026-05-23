@@ -1,6 +1,5 @@
 #include "pico/stdlib.h"
 #include "pico/time.h"
-#include "hardware/gpio.h"
 #include "display.hpp"
 #include "scene.hpp"
 #include "text_screen.hpp"
@@ -10,31 +9,10 @@
 #include "menu_screen.hpp"
 #include "pong_game.hpp"
 #include "buzzer.hpp"
+#include "button.hpp"
 #include <memory>
 #include <vector>
 #include <cstdlib>
-
-// Pico Explorer buttons — active-low, need pull-ups
-static constexpr uint BTN_A   = 12;
-static constexpr uint BTN_B   = 13;
-static constexpr uint BTN_X   = 14;
-static constexpr uint BTN_Y   = 15;
-// Extra buttons — active-high, need pull-downs
-static constexpr uint BTN_GP1 =  1;  // back to menu
-static constexpr uint BTN_GP2 =  2;  // select
-
-static void init_buttons() {
-    for (uint pin : {BTN_A, BTN_B, BTN_X, BTN_Y}) {
-        gpio_init(pin);
-        gpio_set_dir(pin, GPIO_IN);
-        gpio_pull_up(pin);
-    }
-    for (uint pin : {BTN_GP1, BTN_GP2}) {
-        gpio_init(pin);
-        gpio_set_dir(pin, GPIO_IN);
-        gpio_pull_down(pin);
-    }
-}
 
 static uint8_t light_channel() { return static_cast<uint8_t>(150 + rand() % 106); }
 
@@ -43,8 +21,14 @@ enum class AppState { MENU, DEMO, PONG };
 int main() {
     stdio_init_all();
     srand(time_us_32());
-    init_buttons();
     Buzzer::init(0);   // GP0 → bridge to AUDIO header pin for piezo
+
+    Button btn_a  (12, Button::Polarity::ActiveLow);
+    Button btn_b  (13, Button::Polarity::ActiveLow);
+    Button btn_x  (14, Button::Polarity::ActiveLow);
+    Button btn_y  (15, Button::Polarity::ActiveLow);
+    Button btn_gp1( 1, Button::Polarity::ActiveHigh);  // back to menu
+    Button btn_gp2( 2, Button::Polarity::ActiveHigh);  // select
 
     Display display;
 
@@ -66,28 +50,14 @@ int main() {
     AppState state = AppState::MENU;
     display.show(menu);
 
-    bool prev_a = true, prev_b = true, prev_x = true, prev_y = true;
-    bool prev_gp1 = false, prev_gp2 = false;
-
     while (true) {
-        bool a   = gpio_get(BTN_A);
-        bool b   = gpio_get(BTN_B);
-        bool x   = gpio_get(BTN_X);
-        bool y   = gpio_get(BTN_Y);
-        bool gp1 = gpio_get(BTN_GP1);
-        bool gp2 = gpio_get(BTN_GP2);
-
-        bool pressed_a   = !a   && prev_a;
-        bool pressed_b   = !b   && prev_b;
-        bool pressed_x   = !x   && prev_x;
-        bool pressed_y   = !y   && prev_y;
-        bool pressed_gp1 = gp1  && !prev_gp1;
-        bool pressed_gp2 = gp2  && !prev_gp2;
+        btn_a.update(); btn_b.update(); btn_x.update(); btn_y.update();
+        btn_gp1.update(); btn_gp2.update();
 
         if (state == AppState::MENU) {
-            if (pressed_a || pressed_x) menu.move_up();
-            if (pressed_b || pressed_y) menu.move_down();
-            if (pressed_gp2) {
+            if (btn_a.pressed() || btn_x.pressed()) menu.move_up();
+            if (btn_b.pressed() || btn_y.pressed()) menu.move_down();
+            if (btn_gp2.pressed()) {
                 switch (menu.selected()) {
                     case 0: state = AppState::DEMO; display.show(demo); break;
                     case 1: state = AppState::PONG; display.show(pong); break;
@@ -95,15 +65,15 @@ int main() {
             }
 
         } else if (state == AppState::DEMO) {
-            if (pressed_a) demo.adjust_speed(+1);
-            if (pressed_b) demo.adjust_speed(-1);
-            if (pressed_x) {
+            if (btn_a.pressed()) demo.adjust_speed(+1);
+            if (btn_b.pressed()) demo.adjust_speed(-1);
+            if (btn_x.pressed()) {
                 Colour c = {light_channel(), light_channel(), light_channel()};
                 auto t = std::make_unique<TriangleScreen>(TriangleScreen::DEFAULT_SIZE, c);
                 demo.add(*t);
                 triangles.push_back(std::move(t));
             }
-            if (pressed_y && !triangles.empty()) {
+            if (btn_y.pressed() && !triangles.empty()) {
                 int idx = rand() % static_cast<int>(triangles.size());
                 demo.remove(*triangles[idx]);
                 triangles.erase(triangles.begin() + idx);
@@ -116,15 +86,15 @@ int main() {
                 state = AppState::MENU;
                 display.show(menu);
             } else {
-                if (!a) pong.move_left(-1);   // A held = left paddle up
-                if (!b) pong.move_left(+1);   // B held = left paddle down
-                if (!x) pong.move_right(-1);  // X held = right paddle up
-                if (!y) pong.move_right(+1);  // Y held = right paddle down
+                if (btn_a.held()) pong.move_left(-1);   // left paddle up
+                if (btn_b.held()) pong.move_left(+1);   // left paddle down
+                if (btn_x.held()) pong.move_right(-1);  // right paddle up
+                if (btn_y.held()) pong.move_right(+1);  // right paddle down
             }
         }
 
         // GP1: instant back to menu from any non-menu state
-        if (state != AppState::MENU && pressed_gp1) {
+        if (state != AppState::MENU && btn_gp1.pressed()) {
             if (state == AppState::DEMO) {
                 for (auto& t : triangles) demo.remove(*t);
                 triangles.clear();
@@ -137,7 +107,6 @@ int main() {
             display.show(menu);
         }
 
-        prev_a = a; prev_b = b; prev_x = x; prev_y = y; prev_gp1 = gp1; prev_gp2 = gp2;
         sleep_ms(50);
     }
 }

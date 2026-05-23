@@ -29,17 +29,19 @@ include(${PIMORONI_PICO_PATH}/libraries/pico_explorer/pico_explorer.cmake)
 
 add_executable(hello_world
     main.cpp
-    button.cpp
-    display.cpp
-    text_screen.cpp
-    graphic_screen.cpp
-    circle_screen.cpp
-    triangle_screen.cpp
-    menu_screen.cpp
-    pong_game.cpp
-    buzzer.cpp
-    scene.cpp
+    lib/button.cpp
+    lib/buzzer.cpp
+    lib/display.cpp
+    lib/text_screen.cpp
+    lib/graphic_screen.cpp
+    lib/circle_screen.cpp
+    lib/triangle_screen.cpp
+    lib/menu_screen.cpp
+    lib/scene.cpp
+    apps/pong_game.cpp
 )
+
+target_include_directories(hello_world PRIVATE lib apps)
 
 target_link_libraries(hello_world
     pico_stdlib
