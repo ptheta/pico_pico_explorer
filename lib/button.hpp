@@ -4,12 +4,12 @@
 class Button;
 
 struct Buttons {
-    Button& a;
-    Button& b;
-    Button& x;
-    Button& y;
-    Button& gp1;
-    Button& gp2;
+    const Button& a;
+    const Button& b;
+    const Button& x;
+    const Button& y;
+    const Button& gp1;
+    const Button& gp2;
 };
 
 class Button {

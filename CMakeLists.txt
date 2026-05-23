@@ -30,6 +30,7 @@ include(${PIMORONI_PICO_PATH}/libraries/pico_explorer/pico_explorer.cmake)
 add_executable(hello_world
     main.cpp
     lib/button.cpp
+    lib/button_manager.cpp
     lib/buzzer.cpp
     lib/display.cpp
     lib/text_screen.cpp
