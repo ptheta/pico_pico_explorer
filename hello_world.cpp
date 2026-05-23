@@ -7,9 +7,9 @@ int main() {
 
     Display display;
     TextScreen screen("Hello, World!");
+    display.show(screen);
 
     while (true) {
-        display.show(screen);
-        sleep_ms(100);
+        sleep_ms(1000);
     }
 }

@@ -36,6 +36,7 @@ add_executable(hello_world
 target_link_libraries(hello_world
     pico_stdlib
     pico_explorer
+    pico_multicore
 )
 
 # USB serial output; no UART
