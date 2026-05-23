@@ -33,6 +33,78 @@ The code is structured around a small rendering abstraction:
 
 All Pimoroni/PicoGraphics headers are confined to `display.cpp`. The rest of the code has no hardware dependencies.
 
+```mermaid
+classDiagram
+    class Screen {
+        <<abstract>>
+        +render(Renderer&)*
+        +animate()
+        +animation_hz() uint32_t
+        +bounds() Rect
+        +on_collision(Screen&)
+        +adjust_speed(int)
+        +reset()
+    }
+
+    class Renderer {
+        <<abstract>>
+        +set_pen(Colour)
+        +clear()
+        +fill_rect(int,int,int,int)
+        +fill_circle(int,int,int)
+        +fill_triangle(int,int,int,int,int,int)
+        +text(string_view,int,int,int,float)
+        +measure_text(string_view,float) int
+    }
+
+    class PicoRenderer {
+        -graphics PicoGraphics_PenRGB332
+    }
+
+    class Display {
+        +show(Screen&)
+        -impl Impl
+        note "Runs render loop on core 1"
+    }
+
+    class Scene {
+        +add(Screen&)
+        +remove(Screen&)
+        +adjust_speed(int)
+        +reset()
+        -entries_ vector
+        -cs_ critical_section_t
+    }
+
+    class MenuScreen {
+        +move_up()
+        +move_down()
+        +selected() int
+        -selected_ atomic~int~
+    }
+
+    class TextScreen
+    class GraphicScreen
+    class CircleScreen
+    class TriangleScreen
+
+    Screen <|-- Scene
+    Screen <|-- TextScreen
+    Screen <|-- GraphicScreen
+    Screen <|-- CircleScreen
+    Screen <|-- TriangleScreen
+    Screen <|-- MenuScreen
+
+    Renderer <|-- PicoRenderer
+
+    Scene "1" o-- "0..*" Screen : children
+
+    Display *-- PicoRenderer : owns
+    Display ..> Screen : shows
+
+    Screen ..> Renderer : uses in render()
+```
+
 ## Building
 
 One-time setup (Fedora — installs toolchain, clones SDKs, builds picotool):
