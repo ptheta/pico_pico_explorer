@@ -47,18 +47,39 @@ export PIMORONI_PICO_PATH="$PICO_DIR/pimoroni-pico"
 # Copy pico_sdk_import.cmake locally so CMake can find it without the env var
 cp "$PICO_SDK_PATH/external/pico_sdk_import.cmake" .
 
+# --- picotool ---
+# The pico-sdk embeds picotool but passes -DPICOTOOL_NO_LIBUSB=1 and its embedded
+# build breaks on GCC 16. Build it separately with -fpermissive and install it so
+# that the pico-sdk finds the pre-built version instead of rebuilding it.
+if [ ! -d "$PICO_DIR/picotool" ]; then
+    echo "==> Cloning picotool"
+    git clone --depth 1 https://github.com/raspberrypi/picotool.git "$PICO_DIR/picotool"
+else
+    echo "==> picotool already present"
+fi
+
+echo "==> Building picotool"
+cmake -S "$PICO_DIR/picotool" -B "$PICO_DIR/picotool/build" \
+    -DPICO_SDK_PATH="$PICO_SDK_PATH" \
+    -DPICOTOOL_NO_LIBUSB=1 \
+    -DPICOTOOL_FLAT_INSTALL=1 \
+    -DCMAKE_INSTALL_PREFIX="$PICO_DIR/picotool-install" \
+    -DCMAKE_CXX_FLAGS="-fpermissive -Wno-error"
+cmake --build "$PICO_DIR/picotool/build" -j"$(nproc)"
+cmake --install "$PICO_DIR/picotool/build"
+
 # --- build ---
 echo "==> Configuring (pico_w board)"
 rm -rf build
-mkdir build
 cmake -S . -B build \
     -DPICO_SDK_PATH="$PICO_SDK_PATH" \
     -DPIMORONI_PICO_PATH="$PIMORONI_PICO_PATH" \
-    -DPICO_BOARD=pico_w
+    -DPICO_BOARD=pico_w \
+    -DCMAKE_PREFIX_PATH="$PICO_DIR/picotool-install"
 
 echo "==> Building"
 cmake --build build -j"$(nproc)"
 
 echo ""
 echo "Build complete. Flash build/hello_world.uf2 to your Pico W:"
-echo "  Hold BOOTSEL, plug in USB, then: cp build/hello_world.uf2 /media/\$USER/RPI-RP2/"
+echo "  Hold BOOTSEL, plug in USB, then run: bash flash.sh"

@@ -45,5 +45,8 @@ target_link_libraries(hello_world
 pico_enable_stdio_usb(hello_world 1)
 pico_enable_stdio_uart(hello_world 0)
 
+# Setting baud rate to 1200 on the USB serial port triggers reboot to BOOTSEL
+target_compile_definitions(hello_world PRIVATE PICO_STDIO_USB_RESET_MAGIC_BAUD_RATE=1200)
+
 # Generate .uf2, .hex, .bin, .map
 pico_add_extra_outputs(hello_world)
