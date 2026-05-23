@@ -28,7 +28,8 @@ include(${PIMORONI_PICO_PATH}/common/pimoroni_bus.cmake)
 include(${PIMORONI_PICO_PATH}/libraries/pico_explorer/pico_explorer.cmake)
 
 add_executable(hello_world
-    hello_world.cpp
+    main.cpp
+    button.cpp
     display.cpp
     text_screen.cpp
     graphic_screen.cpp
