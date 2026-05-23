@@ -32,6 +32,9 @@ add_executable(hello_world
     display.cpp
     text_screen.cpp
     graphic_screen.cpp
+    circle_screen.cpp
+    triangle_screen.cpp
+    menu_screen.cpp
     scene.cpp
 )
 

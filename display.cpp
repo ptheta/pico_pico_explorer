@@ -30,8 +30,20 @@ struct PicoRenderer : Renderer {
         graphics.rectangle(pimoroni::Rect(x, y, w, h));
     }
 
+    void fill_circle(int cx, int cy, int r) override {
+        graphics.circle(Point(cx, cy), r);
+    }
+
+    void fill_triangle(int x1, int y1, int x2, int y2, int x3, int y3) override {
+        graphics.triangle(Point(x1, y1), Point(x2, y2), Point(x3, y3));
+    }
+
     void text(std::string_view t, int x, int y, int wrap, float scale) override {
         graphics.text(t, Point(x, y), wrap, scale);
+    }
+
+    int measure_text(std::string_view t, float scale) override {
+        return graphics.measure_text(t, scale);
     }
 };
 
@@ -54,6 +66,7 @@ struct Display::Impl {
 
     ~Impl() {
         running.store(false, std::memory_order_relaxed);
+        multicore_reset_core1();
     }
 
     void render_loop() {

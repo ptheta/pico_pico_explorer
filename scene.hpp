@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include "pico/critical_section.h"
 #include "screen.hpp"
 #include "renderer.hpp"
 
@@ -10,10 +11,13 @@ public:
     explicit Scene(Colour bg = {0, 0, 0}, uint32_t display_hz = 30);
 
     void add(Screen& screen);
+    void remove(Screen& screen);
 
     void     render(Renderer& r) const override;
     void     animate()                   override;
     uint32_t animation_hz()        const override { return display_hz_; }
+    void     adjust_speed(int delta)     override;
+    void     reset()                     override;
 
 private:
     struct Entry {
@@ -31,4 +35,6 @@ private:
     uint32_t                     display_hz_;
     std::vector<Entry>           entries_;
     std::vector<CollisionPair>   active_collisions_;
+    std::vector<CollisionPair>   current_collisions_;
+    mutable critical_section_t   cs_;
 };

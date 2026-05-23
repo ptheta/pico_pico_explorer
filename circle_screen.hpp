@@ -3,18 +3,16 @@
 #include "screen.hpp"
 #include "renderer.hpp"
 
-class GraphicScreen : public Screen {
+class CircleScreen : public Screen {
 public:
-    static constexpr int      DEFAULT_W       = 40;
-    static constexpr int      DEFAULT_H       = 40;
+    static constexpr int      DEFAULT_RADIUS  = 20;
     static constexpr int      DEFAULT_STEP_PX = 5;
     static constexpr uint32_t DEFAULT_ANIM_HZ = 30;
 
-    explicit GraphicScreen(int      w       = DEFAULT_W,
-                           int      h       = DEFAULT_H,
-                           Colour   colour  = {255, 140, 0},
-                           int      step_px = DEFAULT_STEP_PX,
-                           uint32_t anim_hz = DEFAULT_ANIM_HZ);
+    explicit CircleScreen(int      radius  = DEFAULT_RADIUS,
+                          Colour   colour  = {220, 50, 50},
+                          int      step_px = DEFAULT_STEP_PX,
+                          uint32_t anim_hz = DEFAULT_ANIM_HZ);
 
     void     render(Renderer& r) const override;
     void     animate()                   override;
@@ -25,9 +23,9 @@ public:
     void     reset()                     override;
 
 private:
-    int      w_, h_;
+    int      r_;
     Colour   colour_;
     int      step_;
     uint32_t anim_hz_;
-    int      x_, y_, dx_, dy_;
+    int      cx_, cy_, dx_, dy_;
 };

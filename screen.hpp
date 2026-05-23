@@ -31,4 +31,6 @@ public:
     virtual uint32_t animation_hz()        const { return 0; }
     virtual Rect     bounds()              const { return {0, 0, 0, 0}; }
     virtual void     on_collision(Screen&)       {}
+    virtual void     adjust_speed(int)           {}
+    virtual void     reset()                     {}
 };

@@ -1,8 +1,7 @@
 #include "graphic_screen.hpp"
+#include "screen_dims.hpp"
+#include <algorithm>
 #include <cstdlib>
-
-static constexpr int SCREEN_W = 240;
-static constexpr int SCREEN_H = 240;
 
 GraphicScreen::GraphicScreen(int w, int h, Colour colour, int step_px, uint32_t anim_hz)
     : w_(w), h_(h), colour_(colour), step_(step_px), anim_hz_(anim_hz),
@@ -33,4 +32,18 @@ Rect GraphicScreen::bounds() const {
 void GraphicScreen::on_collision(Screen&) {
     dx_ = -dx_;
     dy_ = -dy_;
+}
+
+void GraphicScreen::adjust_speed(int delta) {
+    step_ = std::max(1, std::min(20, step_ + delta));
+    dx_   = dx_ > 0 ?  step_ : -step_;
+    dy_   = dy_ > 0 ?  step_ : -step_;
+}
+
+void GraphicScreen::reset() {
+    step_ = DEFAULT_STEP_PX;
+    x_    = rand() % (SCREEN_W - w_);
+    y_    = rand() % (SCREEN_H - h_);
+    dx_   = rand() % 2 ? step_ : -step_;
+    dy_   = rand() % 2 ? step_ : -step_;
 }

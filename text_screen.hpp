@@ -7,8 +7,8 @@
 class TextScreen : public Screen {
 public:
     static constexpr float    DEFAULT_SCALE   = 2.0f;
-    static constexpr int      DEFAULT_STEP_PX = 3;
-    static constexpr uint32_t DEFAULT_ANIM_HZ = 10;
+    static constexpr int      DEFAULT_STEP_PX = 5;
+    static constexpr uint32_t DEFAULT_ANIM_HZ = 30;
 
     explicit TextScreen(std::string text,
                         Colour      fg       = {255, 255, 255},
@@ -21,6 +21,8 @@ public:
     uint32_t animation_hz()        const override { return anim_hz_; }
     Rect     bounds()              const override;
     void     on_collision(Screen&)       override;
+    void     adjust_speed(int delta)     override;
+    void     reset()                     override;
 
 private:
     std::string text_;
@@ -29,5 +31,5 @@ private:
     int         step_;
     uint32_t    anim_hz_;
     int         x_, y_, dx_, dy_;
-    int         x_max_, y_max_;
+    mutable int text_w_ = -1;
 };

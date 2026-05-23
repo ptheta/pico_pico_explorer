@@ -23,7 +23,8 @@ sudo dnf install -y \
     arm-none-eabi-newlib \
     libusb1-devel \
     git \
-    python3
+    python3 \
+    openocd
 
 # --- pico-sdk ---
 if [ ! -d "$PICO_DIR/pico-sdk" ]; then
