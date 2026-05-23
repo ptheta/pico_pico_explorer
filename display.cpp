@@ -34,7 +34,7 @@ struct PicoRenderer : Renderer {
 struct Display::Impl {
     ST7789                     st7789;
     PicoGraphics_PenRGB332     graphics;
-    std::atomic<const Screen*> current_screen{nullptr};
+    std::atomic<Screen*> current_screen{nullptr};
     std::atomic<bool>          running{true};
 
     Impl()
@@ -53,13 +53,19 @@ struct Display::Impl {
     }
 
     void render_loop() {
+        uint32_t frame = 0;
         while (running.load(std::memory_order_relaxed)) {
-            const Screen* screen = current_screen.load(std::memory_order_acquire);
+            Screen* screen = current_screen.load(std::memory_order_acquire);
             if (screen) {
+                uint32_t anim_hz = screen->animation_hz();
+                if (anim_hz > 0 && frame % (REFRESH_HZ / anim_hz) == 0) {
+                    screen->animate();
+                }
                 PicoRenderer renderer(graphics);
                 screen->render(renderer);
                 st7789.update(&graphics);
             }
+            if (++frame >= REFRESH_HZ) frame = 0;
             sleep_ms(FRAME_MS);
         }
     }
@@ -73,6 +79,6 @@ struct Display::Impl {
 Display::Display()  : impl(std::make_unique<Impl>()) {}
 Display::~Display() = default;
 
-void Display::show(const Screen& screen) {
+void Display::show(Screen& screen) {
     impl->current_screen.store(&screen, std::memory_order_release);
 }

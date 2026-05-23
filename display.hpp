@@ -13,7 +13,7 @@ public:
     Display(Display&&)                 = delete;
     Display& operator=(Display&&)      = delete;
 
-    void show(const Screen& screen);
+    void show(Screen& screen);
 
 private:
     struct Impl;
