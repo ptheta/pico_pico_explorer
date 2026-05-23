@@ -96,10 +96,17 @@ int main() {
             }
 
         } else if (state == AppState::PONG) {
-            if (!a) pong.move_left(-1);   // A held = left paddle up
-            if (!b) pong.move_left(+1);   // B held = left paddle down
-            if (!x) pong.move_right(-1);  // X held = right paddle up
-            if (!y) pong.move_right(+1);  // Y held = right paddle down (+ long press below)
+            if (pong.is_finished()) {
+                pong.reset();
+                Buzzer::stop();
+                state = AppState::MENU;
+                display.show(menu);
+            } else {
+                if (!a) pong.move_left(-1);   // A held = left paddle up
+                if (!b) pong.move_left(+1);   // B held = left paddle down
+                if (!x) pong.move_right(-1);  // X held = right paddle up
+                if (!y) pong.move_right(+1);  // Y held = right paddle down (+ long press below)
+            }
         }
 
         // Y long press: exit to menu from any non-menu state

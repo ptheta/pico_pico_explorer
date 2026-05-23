@@ -10,10 +10,12 @@ PongGame::PongGame() {
 }
 
 void PongGame::reset() {
-    left_y_      = SCREEN_H / 2 - PADDLE_H / 2;
-    right_y_     = SCREEN_H / 2 - PADDLE_H / 2;
-    score_left_  = 0;
-    score_right_ = 0;
+    left_y_       = SCREEN_H / 2 - PADDLE_H / 2;
+    right_y_      = SCREEN_H / 2 - PADDLE_H / 2;
+    score_left_   = 0;
+    score_right_  = 0;
+    winner_       = 0;
+    finish_timer_ = 0;
     reset_ball();
 }
 
@@ -24,8 +26,17 @@ void PongGame::reset_ball() {
     ball_dy_ = rand() % 2 ? BALL_SPEED_Y : -BALL_SPEED_Y;
 }
 
+void PongGame::check_winner() {
+    if (winner_ != 0) return;
+    if (score_left_ >= WIN_SCORE)  { winner_ = 1; ball_dx_ = ball_dy_ = 0; finish_timer_ = FINISH_FRAMES; Buzzer::play(1760, 600); }
+    if (score_right_ >= WIN_SCORE) { winner_ = 2; ball_dx_ = ball_dy_ = 0; finish_timer_ = FINISH_FRAMES; Buzzer::play(1760, 600); }
+}
+
 void PongGame::animate() {
     Buzzer::update();
+
+    if (finish_timer_ > 0) { --finish_timer_; return; }
+    if (winner_ != 0) return;
 
     ball_x_ += ball_dx_;
     ball_y_ += ball_dy_;
@@ -57,6 +68,7 @@ void PongGame::animate() {
     // Scoring
     if (ball_x_ - BALL_R <= 0)        { ++score_right_; reset_ball(); Buzzer::play(220, 300); }
     if (ball_x_ + BALL_R >= SCREEN_W) { ++score_left_;  reset_ball(); Buzzer::play(220, 300); }
+    check_winner();
 }
 
 void PongGame::render(Renderer& r) const {
@@ -81,6 +93,13 @@ void PongGame::render(Renderer& r) const {
     r.set_pen({200, 200, 200});
     r.text(std::to_string(score_left_),  70, 8, 40, 2.0f);
     r.text(std::to_string(score_right_), 155, 8, 40, 2.0f);
+
+    // Victory overlay
+    if (winner_ != 0) {
+        r.set_pen({255, 220, 0});
+        const char* msg = (winner_ == 1) ? "LEFT WINS!" : "RIGHT WINS!";
+        r.text(msg, 20, 100, 200, 2.5f);
+    }
 }
 
 void PongGame::move_left(int dir) {
