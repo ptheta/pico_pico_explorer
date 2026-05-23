@@ -15,10 +15,13 @@ echo "==> Installing ARM toolchain and build tools"
 sudo dnf install -y \
     cmake \
     make \
+    gcc \
+    gcc-c++ \
     arm-none-eabi-gcc-cs \
     arm-none-eabi-gcc-cs-c++ \
     arm-none-eabi-binutils-cs \
     arm-none-eabi-newlib \
+    libusb1-devel \
     git \
     python3
 
