@@ -21,7 +21,14 @@ private:
         uint32_t frame_counter = 0;
     };
 
-    Colour           bg_;
-    uint32_t         display_hz_;
-    std::vector<Entry> entries_;
+    struct CollisionPair {
+        Screen* a;
+        Screen* b;
+        bool operator==(const CollisionPair& o) const { return a == o.a && b == o.b; }
+    };
+
+    Colour                       bg_;
+    uint32_t                     display_hz_;
+    std::vector<Entry>           entries_;
+    std::vector<CollisionPair>   active_collisions_;
 };

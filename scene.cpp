@@ -24,12 +24,28 @@ void Scene::animate() {
         }
     }
 
+    std::vector<CollisionPair> current_collisions;
+
     for (size_t i = 0; i < entries_.size(); ++i) {
         for (size_t j = i + 1; j < entries_.size(); ++j) {
-            if (entries_[i].screen->bounds().intersects(entries_[j].screen->bounds())) {
-                entries_[i].screen->on_collision(*entries_[j].screen);
-                entries_[j].screen->on_collision(*entries_[i].screen);
+            Screen* a = entries_[i].screen;
+            Screen* b = entries_[j].screen;
+            if (a->bounds().intersects(b->bounds())) {
+                current_collisions.push_back({a, b});
             }
         }
     }
+
+    for (auto& pair : current_collisions) {
+        bool was_colliding = false;
+        for (auto& active : active_collisions_) {
+            if (active == pair) { was_colliding = true; break; }
+        }
+        if (!was_colliding) {
+            pair.a->on_collision(*pair.b);
+            pair.b->on_collision(*pair.a);
+        }
+    }
+
+    active_collisions_ = std::move(current_collisions);
 }
