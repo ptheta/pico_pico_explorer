@@ -7,6 +7,7 @@
 #include "graphic_screen.hpp"
 #include "circle_screen.hpp"
 #include "triangle_screen.hpp"
+#include "button.hpp"
 #include <memory>
 #include <vector>
 
@@ -19,6 +20,8 @@ public:
     uint32_t animation_hz()      const override;
     void     adjust_speed(int delta)   override;
     void     reset()                   override;
+
+    void handle_buttons(const Buttons& btns);
 
     void add_triangle();     // add a random-coloured triangle
     void remove_triangle();  // remove a random triangle (no-op if none)

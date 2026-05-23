@@ -21,6 +21,8 @@ int main() {
     Button btn_gp1( 1, Button::Polarity::ActiveHigh);  // back to menu
     Button btn_gp2( 2, Button::Polarity::ActiveHigh);  // select
 
+    Buttons btns{btn_a, btn_b, btn_x, btn_y, btn_gp1, btn_gp2};
+
     Display    display;
     MenuScreen menu({"Bouncing Demo", "Pong"});
     Demo       demo;
@@ -34,9 +36,8 @@ int main() {
         btn_gp1.update(); btn_gp2.update();
 
         if (state == AppState::MENU) {
-            if (btn_a.pressed() || btn_x.pressed()) menu.move_up();
-            if (btn_b.pressed() || btn_y.pressed()) menu.move_down();
-            if (btn_gp2.pressed()) {
+            menu.handle_buttons(btns);
+            if (menu.take_activation()) {
                 switch (menu.selected()) {
                     case 0: state = AppState::DEMO; display.show(demo); break;
                     case 1: state = AppState::PONG; display.show(pong); break;
@@ -44,26 +45,19 @@ int main() {
             }
 
         } else if (state == AppState::DEMO) {
-            if (btn_a.pressed()) demo.adjust_speed(+1);
-            if (btn_b.pressed()) demo.adjust_speed(-1);
-            if (btn_x.pressed()) demo.add_triangle();
-            if (btn_y.pressed()) demo.remove_triangle();
+            demo.handle_buttons(btns);
 
         } else if (state == AppState::PONG) {
+            pong.handle_buttons(btns);
             if (pong.is_finished()) {
                 pong.reset();
                 Buzzer::stop();
                 state = AppState::MENU;
                 display.show(menu);
-            } else {
-                if (btn_a.held()) pong.move_left(-1);   // left paddle up
-                if (btn_b.held()) pong.move_left(+1);   // left paddle down
-                if (btn_x.held()) pong.move_right(-1);  // right paddle up
-                if (btn_y.held()) pong.move_right(+1);  // right paddle down
             }
         }
 
-        // GP1: instant back to menu from any non-menu state
+        // GP1: system-wide back to menu
         if (state != AppState::MENU && btn_gp1.pressed()) {
             if (state == AppState::DEMO) demo.reset();
             else if (state == AppState::PONG) { pong.reset(); Buzzer::stop(); }

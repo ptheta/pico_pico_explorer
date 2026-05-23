@@ -22,6 +22,13 @@ void Demo::reset() {
     scene_.reset();
 }
 
+void Demo::handle_buttons(const Buttons& btns) {
+    if (btns.a.pressed()) adjust_speed(+1);
+    if (btns.b.pressed()) adjust_speed(-1);
+    if (btns.x.pressed()) add_triangle();
+    if (btns.y.pressed()) remove_triangle();
+}
+
 void Demo::add_triangle() {
     Colour c = {light_channel(), light_channel(), light_channel()};
     auto t = std::make_unique<TriangleScreen>(TriangleScreen::DEFAULT_SIZE, c);

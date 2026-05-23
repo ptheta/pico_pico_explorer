@@ -2,6 +2,7 @@
 
 #include "screen.hpp"
 #include "renderer.hpp"
+#include "button.hpp"
 
 class PongGame : public Screen {
 public:
@@ -11,6 +12,8 @@ public:
     void     animate()                  override;
     uint32_t animation_hz()       const override { return 30; }
     void     reset()                    override;
+
+    void handle_buttons(const Buttons& btns);
 
     void move_left(int dir);   // -1 = up, +1 = down
     void move_right(int dir);

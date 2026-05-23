@@ -102,6 +102,13 @@ void PongGame::render(Renderer& r) const {
     }
 }
 
+void PongGame::handle_buttons(const Buttons& btns) {
+    if (btns.a.held()) move_left(-1);
+    if (btns.b.held()) move_left(+1);
+    if (btns.x.held()) move_right(-1);
+    if (btns.y.held()) move_right(+1);
+}
+
 void PongGame::move_left(int dir) {
     left_y_ = std::max(0, std::min(SCREEN_H - PADDLE_H, left_y_ + dir * PADDLE_SPEED));
 }

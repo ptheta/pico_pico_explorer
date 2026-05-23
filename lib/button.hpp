@@ -1,6 +1,17 @@
 #pragma once
 #include "hardware/gpio.h"
 
+class Button;
+
+struct Buttons {
+    Button& a;
+    Button& b;
+    Button& x;
+    Button& y;
+    Button& gp1;
+    Button& gp2;
+};
+
 class Button {
 public:
     enum class Polarity { ActiveLow, ActiveHigh };

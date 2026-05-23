@@ -29,6 +29,18 @@ void MenuScreen::render(Renderer& r) const {
     }
 }
 
+void MenuScreen::handle_buttons(const Buttons& btns) {
+    if (btns.a.pressed() || btns.x.pressed()) move_up();
+    if (btns.b.pressed() || btns.y.pressed()) move_down();
+    if (btns.gp2.pressed()) activated_ = true;
+}
+
+bool MenuScreen::take_activation() {
+    bool v  = activated_;
+    activated_ = false;
+    return v;
+}
+
 void MenuScreen::move_up() {
     int cur = selected_.load(std::memory_order_relaxed);
     int n   = static_cast<int>(items_.size());
