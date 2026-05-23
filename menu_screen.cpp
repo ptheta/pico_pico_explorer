@@ -31,13 +31,14 @@ void MenuScreen::render(Renderer& r) const {
 
 void MenuScreen::move_up() {
     int cur = selected_.load(std::memory_order_relaxed);
-    if (cur > 0) selected_.store(cur - 1, std::memory_order_relaxed);
+    int n   = static_cast<int>(items_.size());
+    selected_.store((cur - 1 + n) % n, std::memory_order_relaxed);
 }
 
 void MenuScreen::move_down() {
     int cur = selected_.load(std::memory_order_relaxed);
-    if (cur < static_cast<int>(items_.size()) - 1)
-        selected_.store(cur + 1, std::memory_order_relaxed);
+    int n   = static_cast<int>(items_.size());
+    selected_.store((cur + 1) % n, std::memory_order_relaxed);
 }
 
 int MenuScreen::selected() const {

@@ -15,19 +15,24 @@
 #include <cstdlib>
 
 // Pico Explorer buttons — active-low, need pull-ups
-static constexpr uint BTN_A = 12;
-static constexpr uint BTN_B = 13;
-static constexpr uint BTN_X = 14;
-static constexpr uint BTN_Y = 15;
-
-// Hold Y for this many 50 ms ticks to exit back to menu
-static constexpr int Y_LONG_TICKS = 100; // 100 × 50 ms = 5 s
+static constexpr uint BTN_A   = 12;
+static constexpr uint BTN_B   = 13;
+static constexpr uint BTN_X   = 14;
+static constexpr uint BTN_Y   = 15;
+// Extra buttons — active-high, need pull-downs
+static constexpr uint BTN_GP1 =  1;  // back to menu
+static constexpr uint BTN_GP2 =  2;  // select
 
 static void init_buttons() {
     for (uint pin : {BTN_A, BTN_B, BTN_X, BTN_Y}) {
         gpio_init(pin);
         gpio_set_dir(pin, GPIO_IN);
         gpio_pull_up(pin);
+    }
+    for (uint pin : {BTN_GP1, BTN_GP2}) {
+        gpio_init(pin);
+        gpio_set_dir(pin, GPIO_IN);
+        gpio_pull_down(pin);
     }
 }
 
@@ -61,24 +66,28 @@ int main() {
     AppState state = AppState::MENU;
     display.show(menu);
 
-    bool prev_a = true, prev_b = true, prev_x = true;
-    int  y_hold_ticks    = 0;
-    bool y_long_consumed = false;
+    bool prev_a = true, prev_b = true, prev_x = true, prev_y = true;
+    bool prev_gp1 = false, prev_gp2 = false;
 
     while (true) {
-        bool a = gpio_get(BTN_A);
-        bool b = gpio_get(BTN_B);
-        bool x = gpio_get(BTN_X);
-        bool y = gpio_get(BTN_Y);
+        bool a   = gpio_get(BTN_A);
+        bool b   = gpio_get(BTN_B);
+        bool x   = gpio_get(BTN_X);
+        bool y   = gpio_get(BTN_Y);
+        bool gp1 = gpio_get(BTN_GP1);
+        bool gp2 = gpio_get(BTN_GP2);
 
-        bool pressed_a = !a && prev_a;
-        bool pressed_b = !b && prev_b;
-        bool pressed_x = !x && prev_x;
+        bool pressed_a   = !a   && prev_a;
+        bool pressed_b   = !b   && prev_b;
+        bool pressed_x   = !x   && prev_x;
+        bool pressed_y   = !y   && prev_y;
+        bool pressed_gp1 = gp1  && !prev_gp1;
+        bool pressed_gp2 = gp2  && !prev_gp2;
 
         if (state == AppState::MENU) {
-            if (pressed_a) menu.move_up();
-            if (pressed_b) menu.move_down();
-            if (pressed_x) {
+            if (pressed_a || pressed_x) menu.move_up();
+            if (pressed_b || pressed_y) menu.move_down();
+            if (pressed_gp2) {
                 switch (menu.selected()) {
                     case 0: state = AppState::DEMO; display.show(demo); break;
                     case 1: state = AppState::PONG; display.show(pong); break;
@@ -94,6 +103,11 @@ int main() {
                 demo.add(*t);
                 triangles.push_back(std::move(t));
             }
+            if (pressed_y && !triangles.empty()) {
+                int idx = rand() % static_cast<int>(triangles.size());
+                demo.remove(*triangles[idx]);
+                triangles.erase(triangles.begin() + idx);
+            }
 
         } else if (state == AppState::PONG) {
             if (pong.is_finished()) {
@@ -105,41 +119,25 @@ int main() {
                 if (!a) pong.move_left(-1);   // A held = left paddle up
                 if (!b) pong.move_left(+1);   // B held = left paddle down
                 if (!x) pong.move_right(-1);  // X held = right paddle up
-                if (!y) pong.move_right(+1);  // Y held = right paddle down (+ long press below)
+                if (!y) pong.move_right(+1);  // Y held = right paddle down
             }
         }
 
-        // Y long press: exit to menu from any non-menu state
-        // Short press in demo: remove a triangle
-        if (state != AppState::MENU) {
-            if (!y) {
-                if (y_hold_ticks < Y_LONG_TICKS) ++y_hold_ticks;
-                if (y_hold_ticks == Y_LONG_TICKS && !y_long_consumed) {
-                    if (state == AppState::DEMO) {
-                        for (auto& t : triangles) demo.remove(*t);
-                        triangles.clear();
-                        demo.reset();
-                    } else if (state == AppState::PONG) {
-                        pong.reset();
-                        Buzzer::stop();
-                    }
-                    state = AppState::MENU;
-                    display.show(menu);
-                    y_long_consumed = true;
-                }
-            } else {
-                if (!y_long_consumed && y_hold_ticks > 0 && state == AppState::DEMO
-                        && !triangles.empty()) {
-                    int idx = rand() % static_cast<int>(triangles.size());
-                    demo.remove(*triangles[idx]);
-                    triangles.erase(triangles.begin() + idx);
-                }
-                y_hold_ticks    = 0;
-                y_long_consumed = false;
+        // GP1: instant back to menu from any non-menu state
+        if (state != AppState::MENU && pressed_gp1) {
+            if (state == AppState::DEMO) {
+                for (auto& t : triangles) demo.remove(*t);
+                triangles.clear();
+                demo.reset();
+            } else if (state == AppState::PONG) {
+                pong.reset();
+                Buzzer::stop();
             }
+            state = AppState::MENU;
+            display.show(menu);
         }
 
-        prev_a = a; prev_b = b; prev_x = x;
+        prev_a = a; prev_b = b; prev_x = x; prev_y = y; prev_gp1 = gp1; prev_gp2 = gp2;
         sleep_ms(50);
     }
 }
