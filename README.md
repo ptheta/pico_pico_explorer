@@ -1,4 +1,4 @@
-# pico_exp1
+# pico_pico_explorer
 
 A playground repo for the Raspberry Pi Pico W + [Pimoroni Pico Explorer](https://shop.pimoroni.com/products/pico-explorer-base) board, written in C++ and built hand-in-hand with [Claude](https://claude.ai) as a collaborative coding experiment.
 
