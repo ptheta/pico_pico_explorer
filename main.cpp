@@ -28,6 +28,7 @@ int main() {
     while (true) {
         absolute_time_t tick_end = make_timeout_time_ms(TICK_MS);
 
+        Buzzer::update();
         buttons.update();
         const Buttons& btns = buttons.get();
 

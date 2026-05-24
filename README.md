@@ -41,7 +41,7 @@ Two-player pong with a bouncing ball and sound effects. First to 15 wins.
 | Y (held) | Right paddle down |
 | GP1 | Back to menu |
 
-**Sound:** bounce sounds play via the onboard piezo. Bridge **GP0** to the **AUDIO** header pin on the Pico Explorer to enable it.
+**Sound:** distinct tones for paddle hits (880 Hz), wall bounces (440 Hz), scoring (400 Hz), and winning (1760 Hz) play via the onboard piezo. Bridge **GP0** to the **AUDIO** header pin on the Pico Explorer to enable it.
 
 ## Architecture
 

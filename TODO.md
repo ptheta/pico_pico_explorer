@@ -26,23 +26,17 @@ Fix: scoring is now checked *before* walls and paddles via `if/else if/else`.
 If the ball has exited, wall and paddle checks are skipped entirely, so the
 220 Hz score sound always plays cleanly.
 
-## 3. Scene deadlock if a callback re-enters Scene (LATENT)
+## 3. Scene deadlock if a callback re-enters Scene (LATENT) — FIXED
 
-`Scene::animate()` holds `cs_` (non-reentrant hardware spinlock) while making
-virtual calls to `animate()` and `on_collision()` on child screens. No current
-child calls back into the scene, so this is safe today. Any future
-`on_collision` handler that calls `scene_.add()` or `scene_.remove()` will
-deadlock the rendering core.
+`add()` and `remove()` now detect re-entry: if called on core 1 while
+`in_animate_` is set (i.e. from within a child `animate()` or `on_collision()`
+callback), the op is queued in `pending_` instead of trying to acquire `cs_`.
+After all callbacks complete, `animate()` clears the flag and flushes `pending_`
+while still holding `cs_`, so the mutation is applied atomically at the end of
+the same frame. `do_remove()` is extracted as a private helper shared by the
+normal path and the flush.
 
-Fix: document the constraint in `screen.hpp`, or restructure so callbacks queue
-deferred actions rather than calling scene methods directly.
+## 4. Buzzer::update() only called from PongGame (FRAGILE) — FIXED
 
-## 4. Buzzer::update() only called from PongGame (FRAGILE)
-
-`Buzzer::update()` is only called from `PongGame::animate()`, so the buzzer
-only auto-stops while Pong is the active screen. Currently safe because all Pong
-exit paths call `Buzzer::stop()` explicitly. If sounds are ever added to `Demo`
-or `MenuScreen` they will never auto-stop.
-
-Fix: move `Buzzer::update()` into the main loop so it runs every tick regardless
-of active screen.
+`Buzzer::update()` moved to the top of the main loop in `main.cpp` so it runs
+every 50 ms tick regardless of active screen. Removed from `PongGame::animate()`.

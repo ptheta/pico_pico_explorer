@@ -31,10 +31,20 @@ private:
         bool operator==(const CollisionPair& o) const { return a == o.a && b == o.b; }
     };
 
+    struct PendingOp {
+        enum class Kind { Add, Remove };
+        Kind    kind;
+        Screen* screen;
+    };
+
+    void do_remove(Screen& screen); // must be called under cs_
+
     Colour                       bg_;
     uint32_t                     display_hz_;
     std::vector<Entry>           entries_;
     std::vector<CollisionPair>   active_collisions_;
     std::vector<CollisionPair>   current_collisions_;
+    std::vector<PendingOp>       pending_;
+    bool                         in_animate_ = false;
     mutable critical_section_t   cs_;
 };

@@ -1,4 +1,5 @@
 #include "scene.hpp"
+#include "pico/multicore.h"
 #include <algorithm>
 
 Scene::Scene(Colour bg, uint32_t display_hz)
@@ -7,24 +8,35 @@ Scene::Scene(Colour bg, uint32_t display_hz)
 }
 
 void Scene::add(Screen& screen) {
+    if (get_core_num() == 1 && in_animate_) {
+        pending_.push_back({PendingOp::Kind::Add, &screen});
+        return;
+    }
     critical_section_enter_blocking(&cs_);
     entries_.push_back({&screen, 0});
     critical_section_exit(&cs_);
 }
 
 void Scene::remove(Screen& screen) {
+    if (get_core_num() == 1 && in_animate_) {
+        pending_.push_back({PendingOp::Kind::Remove, &screen});
+        return;
+    }
     critical_section_enter_blocking(&cs_);
+    do_remove(screen);
+    critical_section_exit(&cs_);
+}
+
+void Scene::do_remove(Screen& screen) {
     auto it = std::find_if(entries_.begin(), entries_.end(),
                            [&](const Entry& e) { return e.screen == &screen; });
     if (it != entries_.end()) entries_.erase(it);
-    // Also drop any collision pairs that referenced this screen.
     active_collisions_.erase(
         std::remove_if(active_collisions_.begin(), active_collisions_.end(),
                        [&](const CollisionPair& p) {
                            return p.a == &screen || p.b == &screen;
                        }),
         active_collisions_.end());
-    critical_section_exit(&cs_);
 }
 
 void Scene::render(Renderer& r) const {
@@ -38,6 +50,8 @@ void Scene::render(Renderer& r) const {
 
 void Scene::animate() {
     critical_section_enter_blocking(&cs_);
+
+    in_animate_ = true;
 
     for (auto& entry : entries_) {
         uint32_t hz = entry.screen->animation_hz();
@@ -66,6 +80,16 @@ void Scene::animate() {
             pair.b->on_collision(*pair.a);
         }
     }
+
+    in_animate_ = false;
+
+    for (auto& op : pending_) {
+        if (op.kind == PendingOp::Kind::Add)
+            entries_.push_back({op.screen, 0});
+        else
+            do_remove(*op.screen);
+    }
+    pending_.clear();
 
     std::swap(active_collisions_, current_collisions_);
     critical_section_exit(&cs_);

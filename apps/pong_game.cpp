@@ -36,8 +36,6 @@ void PongGame::check_winner() {
 }
 
 void PongGame::animate() {
-    Buzzer::update();
-
     critical_section_enter_blocking(&cs_);
 
     if (finish_timer_ > 0) {
