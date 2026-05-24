@@ -2,30 +2,29 @@
 
 Issues identified during code review. To be addressed in detail.
 
-## 1. PongGame data race (HIGH)
+## 1. PongGame data race (HIGH) — FIXED
 
-`PongGame` has plain `int` members with no synchronisation. Core 0 writes
-`left_y_`/`right_y_` via `handle_buttons()` and reads `winner_`/`finish_timer_`
-via `is_finished()`. Core 1 writes and reads all of them in `animate()` and
-`render()`. The most dangerous window is `is_finished()` on core 0 reading
-`winner_` and `finish_timer_` while `check_winner()` on core 1 is writing both.
+`PongGame` now holds a `mutable critical_section_t cs_` (same pattern as
+`Scene`). All cross-core accesses are protected: `animate()`, `render()`,
+`reset()`, `is_finished()`, `move_left()`, and `move_right()` each enter/exit
+`cs_`. `check_winner()` and `reset_ball()` are internal helpers always called
+under the lock so they need no additional guarding.
 
-`Scene` already does this correctly with `critical_section_t`. `PongGame` needs
-the same treatment, or `std::atomic` on `winner_` and `finish_timer_` at
-minimum.
+## 2. Division by zero in display loop (MEDIUM) — FIXED
 
-## 2. Division by zero in display loop (MEDIUM)
+Guard in `lib/display.cpp:78` now reads:
+`if (anim_hz > 0 && anim_hz <= REFRESH_HZ && frame % (REFRESH_HZ / anim_hz) == 0)`
 
-`lib/display.cpp:78`:
-```cpp
-frame % (REFRESH_HZ / anim_hz)
-```
-If any `Screen` returns `animation_hz() > REFRESH_HZ` (30), integer division
-produces 0 and `frame % 0` is evaluated. On Cortex-M0+ this silently returns 0,
-so `animate()` gets called every frame regardless of the requested rate.
-`screen.hpp` has an advisory comment but no enforcement.
+## 2b. Corner-exit audio artefact — FIXED
 
-Fix: `if (anim_hz > 0 && anim_hz <= REFRESH_HZ && frame % (REFRESH_HZ / anim_hz) == 0)`.
+When the ball exited in a corner, the top/bottom wall-bounce check (440 Hz)
+fired in the same frame as the scoring check (220 Hz). The score sound
+immediately overwrote the wall sound mid-PWM-cycle, producing an audible
+artefact that was heard inconsistently (only on corner exits).
+
+Fix: scoring is now checked *before* walls and paddles via `if/else if/else`.
+If the ball has exited, wall and paddle checks are skipped entirely, so the
+220 Hz score sound always plays cleanly.
 
 ## 3. Scene deadlock if a callback re-enters Scene (LATENT)
 

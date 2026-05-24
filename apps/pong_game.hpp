@@ -3,6 +3,7 @@
 #include "screen.hpp"
 #include "renderer.hpp"
 #include "button.hpp"
+#include "pico/critical_section.h"
 
 class PongGame : public Screen {
 public:
@@ -18,11 +19,13 @@ public:
     void move_left(int dir);   // -1 = up, +1 = down
     void move_right(int dir);
 
-    bool is_finished() const { return finish_timer_ == 0 && winner_ != 0; }
+    bool is_finished() const;
 
 private:
     void reset_ball();
     void check_winner();
+
+    mutable critical_section_t cs_;
 
     int left_y_;
     int right_y_;

@@ -6,10 +6,12 @@
 #include <string>
 
 PongGame::PongGame() {
+    critical_section_init(&cs_);
     reset();
 }
 
 void PongGame::reset() {
+    critical_section_enter_blocking(&cs_);
     left_y_       = SCREEN_H / 2 - PADDLE_H / 2;
     right_y_      = SCREEN_H / 2 - PADDLE_H / 2;
     score_left_   = 0;
@@ -17,6 +19,7 @@ void PongGame::reset() {
     winner_       = 0;
     finish_timer_ = 0;
     reset_ball();
+    critical_section_exit(&cs_);
 }
 
 void PongGame::reset_ball() {
@@ -35,43 +38,52 @@ void PongGame::check_winner() {
 void PongGame::animate() {
     Buzzer::update();
 
-    if (finish_timer_ > 0) { --finish_timer_; return; }
-    if (winner_ != 0) return;
+    critical_section_enter_blocking(&cs_);
 
-    ball_x_ += ball_dx_;
-    ball_y_ += ball_dy_;
+    if (finish_timer_ > 0) {
+        --finish_timer_;
+    } else if (winner_ == 0) {
+        ball_x_ += ball_dx_;
+        ball_y_ += ball_dy_;
 
-    // Top / bottom walls
-    if (ball_y_ - BALL_R <= 0)        { ball_y_ = BALL_R;            ball_dy_ = -ball_dy_; Buzzer::play(440, 50); }
-    if (ball_y_ + BALL_R >= SCREEN_H) { ball_y_ = SCREEN_H - BALL_R; ball_dy_ = -ball_dy_; Buzzer::play(440, 50); }
+        // Scoring — checked before walls so a corner exit never triggers a
+        // wall-bounce sound in the same frame, which would produce an audio
+        // artefact when the score sound immediately overwrites it.
+        if (ball_x_ - BALL_R <= 0)        { ++score_right_; reset_ball(); Buzzer::play(400, 300); check_winner(); }
+        else if (ball_x_ + BALL_R >= SCREEN_W) { ++score_left_;  reset_ball(); Buzzer::play(400, 300); check_winner(); }
+        else {
+            // Top / bottom walls
+            if (ball_y_ - BALL_R <= 0)        { ball_y_ = BALL_R;            ball_dy_ = -ball_dy_; Buzzer::play(440, 50); }
+            if (ball_y_ + BALL_R >= SCREEN_H) { ball_y_ = SCREEN_H - BALL_R; ball_dy_ = -ball_dy_; Buzzer::play(440, 50); }
 
-    // Left paddle collision
-    if (ball_dx_ < 0 &&
-        ball_x_ - BALL_R <= LEFT_X + PADDLE_W &&
-        ball_y_ + BALL_R >= left_y_ &&
-        ball_y_ - BALL_R <= left_y_ + PADDLE_H) {
-        ball_x_  = LEFT_X + PADDLE_W + BALL_R;
-        ball_dx_ = -ball_dx_;
-        Buzzer::play(880, 60);
+            // Left paddle collision
+            if (ball_dx_ < 0 &&
+                ball_x_ - BALL_R <= LEFT_X + PADDLE_W &&
+                ball_y_ + BALL_R >= left_y_ &&
+                ball_y_ - BALL_R <= left_y_ + PADDLE_H) {
+                ball_x_  = LEFT_X + PADDLE_W + BALL_R;
+                ball_dx_ = -ball_dx_;
+                Buzzer::play(880, 60);
+            }
+
+            // Right paddle collision
+            if (ball_dx_ > 0 &&
+                ball_x_ + BALL_R >= RIGHT_X &&
+                ball_y_ + BALL_R >= right_y_ &&
+                ball_y_ - BALL_R <= right_y_ + PADDLE_H) {
+                ball_x_  = RIGHT_X - BALL_R;
+                ball_dx_ = -ball_dx_;
+                Buzzer::play(880, 60);
+            }
+        }
     }
 
-    // Right paddle collision
-    if (ball_dx_ > 0 &&
-        ball_x_ + BALL_R >= RIGHT_X &&
-        ball_y_ + BALL_R >= right_y_ &&
-        ball_y_ - BALL_R <= right_y_ + PADDLE_H) {
-        ball_x_  = RIGHT_X - BALL_R;
-        ball_dx_ = -ball_dx_;
-        Buzzer::play(880, 60);
-    }
-
-    // Scoring
-    if (ball_x_ - BALL_R <= 0)        { ++score_right_; reset_ball(); Buzzer::play(220, 300); }
-    if (ball_x_ + BALL_R >= SCREEN_W) { ++score_left_;  reset_ball(); Buzzer::play(220, 300); }
-    check_winner();
+    critical_section_exit(&cs_);
 }
 
 void PongGame::render(Renderer& r) const {
+    critical_section_enter_blocking(&cs_);
+
     r.set_pen({0, 0, 0});
     r.clear();
 
@@ -100,6 +112,15 @@ void PongGame::render(Renderer& r) const {
         const char* msg = (winner_ == 1) ? "LEFT WINS!" : "RIGHT WINS!";
         r.text(msg, 20, 100, 200, 2.5f);
     }
+
+    critical_section_exit(&cs_);
+}
+
+bool PongGame::is_finished() const {
+    critical_section_enter_blocking(&cs_);
+    bool result = finish_timer_ == 0 && winner_ != 0;
+    critical_section_exit(&cs_);
+    return result;
 }
 
 void PongGame::handle_buttons(const Buttons& btns) {
@@ -110,9 +131,13 @@ void PongGame::handle_buttons(const Buttons& btns) {
 }
 
 void PongGame::move_left(int dir) {
+    critical_section_enter_blocking(&cs_);
     left_y_ = std::max(0, std::min(SCREEN_H - PADDLE_H, left_y_ + dir * PADDLE_SPEED));
+    critical_section_exit(&cs_);
 }
 
 void PongGame::move_right(int dir) {
+    critical_section_enter_blocking(&cs_);
     right_y_ = std::max(0, std::min(SCREEN_H - PADDLE_H, right_y_ + dir * PADDLE_SPEED));
+    critical_section_exit(&cs_);
 }

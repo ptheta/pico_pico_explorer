@@ -75,7 +75,7 @@ struct Display::Impl {
             Screen* screen = current_screen.load(std::memory_order_acquire);
             if (screen) {
                 uint32_t anim_hz = screen->animation_hz();
-                if (anim_hz > 0 && frame % (REFRESH_HZ / anim_hz) == 0) {
+                if (anim_hz > 0 && anim_hz <= REFRESH_HZ && frame % (REFRESH_HZ / anim_hz) == 0) {
                     screen->animate();
                 }
                 PicoRenderer renderer(graphics);
